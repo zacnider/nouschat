@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nous AI Chat Interface</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Initialize theme before DOM loads to prevent flashing -->
+    <script>
+        // Check for stored theme preference and apply it
+        const storedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', storedTheme);
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar / Left panel -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-brain"></i>
+                    <span class="app-name" data-i18n="appTitle">Nous AI Chat</span>
+                </div>
+                <button id="new-chat-btn" class="primary-button">
+                    <i class="fas fa-plus"></i>
+                    <span data-i18n="newChatButton">New Chat</span>
+                </button>
+            </div>
+            
+            <!-- Conversation list -->
+            <div class="conversations-section">
+                <h3 data-i18n="conversationList">Your Conversations</h3>
+                <div id="conversations-list" class="conversations-list">
+                    <!-- Conversations will be populated here -->
+                </div>
+            </div>
+            
+            <!-- Usage statistics -->
+            <div class="usage-stats">
+                <h3 data-i18n="usageStats">Usage Statistics</h3>
+                <div class="stat-item">
+                    <span data-i18n="totalTokens">Total Tokens</span>: 
+                    <span id="total-tokens">0</span>
+                </div>
+                <div class="stat-item">
+                    <span data-i18n="promptTokens">Prompt Tokens</span>: 
+                    <span id="prompt-tokens">0</span>
+                </div>
+                <div class="stat-item">
+                    <span data-i18n="completionTokens">Completion Tokens</span>: 
+                    <span id="completion-tokens">0</span>
+                </div>
+                <div class="stat-item">
+                    <span data-i18n="estimatedCost">Estimated Cost</span>: 
+                    $<span id="estimated-cost">0.000</span>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="sidebar-footer">
+                <div class="language-selector">
+                    <button class="lang-btn" data-lang="en">EN</button>
+                    <button class="lang-btn" data-lang="tr">TR</button>
+                    <button class="lang-btn" data-lang="de">DE</button>
+                </div>
+                <div class="theme-toggle">
+                    <button id="light-theme-btn" title="Light mode">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                    <button id="dark-theme-btn" title="Dark mode">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+                <p class="footer-text" data-i18n="footer">Developed for personal use only.</p>
+            </div>
+        </aside>
+
+        <!-- Main content area -->
+        <main class="main-content">
+            <!-- Tab navigation -->
+            <nav class="tab-nav">
+                <button class="tab-btn active" data-tab="chat">
+                    <i class="fas fa-comment"></i>
+                    <span data-i18n="navChat">Chat</span>
+                </button>
+                <button class="tab-btn" data-tab="settings">
+                    <i class="fas fa-cog"></i>
+                    <span data-i18n="navSettings">Settings</span>
+                </button>
+                <button class="tab-btn" data-tab="export">
+                    <i class="fas fa-file-export"></i>
+                    <span data-i18n="navExport">Export</span>
+                </button>
+            </nav>
+            
+            <!-- Chat tab content -->
+            <div class="tab-content active" id="chat-tab">
+                <div class="chat-header">
+                    <h2 id="active-chat-name" data-i18n="activeChat">Active Chat</h2>
+                </div>
+                
+                <div class="chat-container">
+                    <!-- Chat messages will appear here -->
+                    <div id="chat-messages" class="chat-messages">
+                        <div class="empty-chat-message">
+                            <i class="fas fa-comment-dots"></i>
+                            <p data-i18n="emptyChat">Start a new conversation by typing a message</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Input area -->
+                    <div class="chat-input-container">
+                        <div class="chat-input-wrapper">
+                            <textarea id="message-input" placeholder="Type your message here..." 
+                                data-i18n-placeholder="messagePlaceholder"></textarea>
+                            <button id="send-message-btn" class="send-button">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Settings tab content -->
+            <div class="tab-content" id="settings-tab">
+                <div class="settings-container">
+                    <section class="settings-section">
+                        <h2 data-i18n="apiSettings">API Settings</h2>
+                        <div class="form-group">
+                            <label for="api-key" data-i18n="apiKey">Nous API Key</label>
+                            <input type="password" id="api-key" 
+                                   data-i18n-placeholder="apiKeyPlaceholder"
+                                   placeholder="Enter your Nous API key here">
+                            <p class="help-text" data-i18n="apiKeyInfo">Your API key is stored locally in your browser.</p>
+                        </div>
+                    </section>
+                    
+                    <section class="settings-section">
+                        <h2 data-i18n="modelSettings">Model Settings</h2>
+                        
+                        <div class="form-group">
+                            <label for="model-selection" data-i18n="modelSelection">Model</label>
+                            <select id="model-selection">
+                                <option value="DeepHermes-3-Mistral-24B-Preview">DeepHermes-3-Mistral-24B-Preview</option>
+                                <option value="Hermes-3-Llama-3.1-70B">Hermes-3-Llama-3.1-70B</option>
+                                <option value="DeepHermes-3-Llama-3-8B-Preview">DeepHermes-3-Llama-3-8B-Preview</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="temperature" data-i18n="temperatureLabel">Temperature</label>
+                            <div class="slider-container">
+                                <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.7">
+                                <span id="temperature-value">0.7</span>
+                            </div>
+                            <p class="help-text" data-i18n="temperatureInfo">Lower values make responses more focused and deterministic. Higher values make output more random and creative.</p>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="max-tokens" data-i18n="maxTokensLabel">Maximum Length</label>
+                            <div class="slider-container">
+                                <input type="range" id="max-tokens" min="100" max="4000" step="100" value="1000">
+                                <span id="max-tokens-value">1000</span>
+                            </div>
+                            <p class="help-text" data-i18n="maxTokensInfo">Maximum number of tokens to generate. Higher values allow for longer responses.</p>
+                        </div>
+                    </section>
+                    
+                    <section class="settings-section">
+                        <h2 data-i18n="systemTemplates">System Message Templates</h2>
+                        
+                        <div class="form-group">
+                            <select id="system-template">
+                                <option value="default" data-i18n="defaultAssistant">Default Assistant</option>
+                                <option value="creative" data-i18n="creativeWriter">Creative Writer</option>
+                                <option value="code" data-i18n="codeHelper">Code Helper</option>
+                                <option value="thoughtful" data-i18n="thoughtfulAnalyst">Thoughtful Analyst</option>
+                                <option value="concise" data-i18n="conciseResponder">Concise Responder</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="use-custom-template">
+                                <label for="use-custom-template" data-i18n="useCustomTemplate">Use Custom Template</label>
+                            </div>
+                            <textarea id="custom-system-message" 
+                                     data-i18n-placeholder="customSystemMessage" 
+                                     placeholder="Custom system message"></textarea>
+                            <p class="help-text" data-i18n="systemMessageInfo">Sets the behavior and context for the AI assistant.</p>
+                        </div>
+                        
+                        <button id="save-settings-btn" class="primary-button">
+                            <i class="fas fa-save"></i>
+                            <span data-i18n="saveSettings">Save Settings</span>
+                        </button>
+                    </section>
+                </div>
+            </div>
+            
+            <!-- Export tab content -->
+            <div class="tab-content" id="export-tab">
+                <div class="export-container">
+                    <h2 data-i18n="exportTitle">Export Conversation</h2>
+                    
+                    <div class="form-group">
+                        <label for="export-format" data-i18n="exportFormat">Format</label>
+                        <select id="export-format">
+                            <option value="pdf" data-i18n="formatPDF">PDF Document</option>
+                            <option value="json" data-i18n="formatJSON">JSON File</option>
+                            <option value="csv" data-i18n="formatCSV">CSV File</option>
+                        </select>
+                    </div>
+                    
+                    <button id="export-btn" class="primary-button">
+                        <i class="fas fa-file-export"></i>
+                        <span data-i18n="exportButton">Export</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modal templates -->
+    <div class="modal-overlay" id="modal-overlay"></div>
+    
+    <!-- Rename conversation modal -->
+    <div class="modal" id="rename-modal">
+        <div class="modal-content">
+            <h2 data-i18n="renameConversation">Rename Conversation</h2>
+            <div class="form-group">
+                <label for="new-conversation-name" data-i18n="newConversationName">New name</label>
+                <input type="text" id="new-conversation-name">
+            </div>
+            <div class="modal-buttons">
+                <button id="cancel-rename-btn" class="secondary-button" data-i18n="cancelButton">Cancel</button>
+                <button id="save-rename-btn" class="primary-button" data-i18n="saveButton">Save</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete confirmation modal -->
+    <div class="modal" id="delete-modal">
+        <div class="modal-content">
+            <h2 data-i18n="deleteConversation">Delete Conversation</h2>
+            <p data-i18n="confirmDelete">Are you sure you want to delete this conversation?</p>
+            <div class="modal-buttons">
+                <button id="cancel-delete-btn" class="secondary-button" data-i18n="cancelButton">Cancel</button>
+                <button id="confirm-delete-btn" class="danger-button" data-i18n="deleteButton">Delete</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Clear chat confirmation modal -->
+    <div class="modal" id="clear-modal">
+        <div class="modal-content">
+            <h2 data-i18n="clearConversation">Clear Chat</h2>
+            <p data-i18n="confirmClear">Are you sure you want to clear this conversation?</p>
+            <div class="modal-buttons">
+                <button id="cancel-clear-btn" class="secondary-button" data-i18n="cancelButton">Cancel</button>
+                <button id="confirm-clear-btn" class="danger-button" data-i18n="deleteButton">Clear</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification toast -->
+    <div class="toast" id="toast"></div>
+    
+    <!-- Scripts -->
+    <script src="localization.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

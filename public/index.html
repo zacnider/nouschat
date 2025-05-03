@@ -1,0 +1,2230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nous AI Chat Interface</title>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Light theme (default) */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f7fa;
+            --bg-tertiary: #edf2f7;
+            --text-primary: #1a202c;
+            --text-secondary: #4a5568;
+            --text-tertiary: #718096;
+            --accent-primary: #4f46e5;
+            --accent-secondary: #7c3aed;
+            --border-color: #e2e8f0;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --user-message-bg: #f0f7ff;
+            --ai-message-bg: #f8f9fa;
+            --hover-color: #f5f5f5;
+            --success-color: #38a169;
+            --warning-color: #dd6b20;
+            --error-color: #e53e3e;
+            
+            /* Font properties */
+            --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            
+            /* Dimensions */
+            --sidebar-width: 300px;
+            --header-height: 60px;
+            --border-radius-sm: 4px;
+            --border-radius-md: 8px;
+            --border-radius-lg: 12px;
+            
+            /* Transitions */
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.3s ease;
+        }
+
+        /* Dark theme */
+        [data-theme="dark"] {
+            --bg-primary: #1a202c;
+            --bg-secondary: #2d3748;
+            --bg-tertiary: #4a5568;
+            --text-primary: #f7fafc;
+            --text-secondary: #e2e8f0;
+            --text-tertiary: #a0aec0;
+            --accent-primary: #6366f1;
+            --accent-secondary: #9f7aea;
+            --border-color: #4a5568;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --user-message-bg: #3a4a6b;
+            --ai-message-bg: #2d3748;
+            --hover-color: #2c3544;
+            --success-color: #48bb78;
+            --warning-color: #ed8936;
+            --error-color: #f56565;
+        }
+
+        /* Reset & Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: var(--font-primary);
+            font-size: 16px;
+            line-height: 1.5;
+            color: var(--text-primary);
+            background-color: var(--bg-primary);
+        }
+
+        button, input, select, textarea {
+            font-family: inherit;
+            font-size: inherit;
+            color: inherit;
+        }
+
+        button {
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        /* App Layout */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100%;
+            background-color: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+            color: var(--accent-primary);
+        }
+
+        .logo i {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+
+        .app-name {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .conversations-section {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .conversations-section h3 {
+            margin-bottom: 12px;
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        .conversations-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .conversation-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-radius: var(--border-radius-sm);
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background-color var(--transition-fast);
+        }
+
+        .conversation-item:hover {
+            background-color: var(--hover-color);
+        }
+
+        .conversation-item.active {
+            background-color: var(--accent-primary);
+            color: white;
+        }
+
+        .conversation-text {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .conversation-actions {
+            display: flex;
+            gap: 8px;
+            opacity: 0.7;
+        }
+
+        .conversation-actions button {
+            padding: 4px;
+            border-radius: 4px;
+            transition: background-color var(--transition-fast);
+        }
+
+        .conversation-actions button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .usage-stats {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        .stat-item {
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        .language-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .lang-btn {
+            padding: 6px 12px;
+            border-radius: var(--border-radius-sm);
+            border: 1px solid var(--border-color);
+            transition: all var(--transition-fast);
+        }
+
+        .lang-btn.active {
+            background-color: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+
+        .theme-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .theme-toggle button {
+            padding: 8px;
+            border-radius: 50%;
+            background-color: var(--bg-tertiary);
+            color: var(--text-secondary);
+            transition: all var(--transition-fast);
+        }
+
+        .theme-toggle button.active {
+            background-color: var(--accent-primary);
+            color: white;
+        }
+
+        .footer-text {
+            margin-top: 8px;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .tab-nav {
+            display: flex;
+            gap: 4px;
+            padding: 12px 20px 0;
+            background-color: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            padding: 10px 16px;
+            border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
+            color: var(--text-secondary);
+            transition: all var(--transition-fast);
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            color: var(--accent-primary);
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+        }
+
+        .tab-btn i {
+            margin-right: 8px;
+        }
+
+        .tab-content {
+            display: none;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Chat tab */
+        .chat-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .empty-chat-message {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-tertiary);
+            text-align: center;
+        }
+
+        .empty-chat-message i {
+            font-size: 48px;
+            margin-bottom: 12px;
+            color: var(--accent-primary);
+            opacity: 0.5;
+        }
+
+        .message {
+            display: flex;
+            flex-direction: column;
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: var(--border-radius-md);
+        }
+
+        .message-user {
+            align-self: flex-end;
+            background-color: var(--user-message-bg);
+            border: 1px solid rgba(79, 70, 229, 0.2);
+        }
+
+        .message-ai {
+            align-self: flex-start;
+            background-color: var(--ai-message-bg);
+            border: 1px solid var(--border-color);
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .message-header.user {
+            color: var(--accent-primary);
+        }
+
+        .message-header.ai {
+            color: var(--text-secondary);
+        }
+
+        .message-content {
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+        }
+
+        .message-content p {
+            margin-bottom: 12px;
+        }
+
+        .message-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .message-content pre {
+            background-color: var(--bg-tertiary);
+            padding: 12px;
+            border-radius: var(--border-radius-sm);
+            overflow-x: auto;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            margin: 12px 0;
+        }
+
+        .message-content code {
+            font-family: var(--font-mono);
+            background-color: var(--bg-tertiary);
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .chat-input-container {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .chat-input-wrapper {
+            position: relative;
+            display: flex;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+            background-color: var(--bg-primary);
+            box-shadow: 0 2px 4px var(--shadow-color);
+        }
+
+        .chat-input-wrapper textarea {
+            flex: 1;
+            min-height: 56px;
+            max-height: 200px;
+            padding: 16px;
+            resize: none;
+            border: none;
+            outline: none;
+            background-color: transparent;
+        }
+
+        .send-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 56px;
+            color: var(--accent-primary);
+            transition: all var(--transition-fast);
+        }
+
+        .send-button:hover {
+            background-color: var(--accent-primary);
+            color: white;
+        }
+
+        /* Settings Tab */
+        .settings-container {
+            padding: 20px;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        .settings-section {
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .settings-section:last-child {
+            border-bottom: none;
+        }
+
+        .settings-section h2 {
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="password"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            background-color: var(--bg-primary);
+            transition: border-color var(--transition-fast);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--accent-primary);
+            outline: none;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slider-container input[type="range"] {
+            flex: 1;
+        }
+
+        .help-text {
+            margin-top: 4px;
+            font-size: 14px;
+            color: var(--text-tertiary);
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            margin-right: 8px;
+        }
+
+        /* Export Tab */
+        .export-container {
+            padding: 20px;
+        }
+
+        /* Buttons */
+        .primary-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 16px;
+            background-color: var(--accent-primary);
+            color: white;
+            border-radius: var(--border-radius-sm);
+            font-weight: 500;
+            transition: background-color var(--transition-fast);
+        }
+
+        .primary-button:hover {
+            background-color: var(--accent-secondary);
+        }
+
+        .primary-button i {
+            margin-right: 8px;
+        }
+
+        .secondary-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 16px;
+            background-color: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border-radius: var(--border-radius-sm);
+            font-weight: 500;
+            transition: all var(--transition-fast);
+        }
+
+        .secondary-button:hover {
+            background-color: var(--border-color);
+        }
+
+        .danger-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 16px;
+            background-color: var(--error-color);
+            color: white;
+            border-radius: var(--border-radius-sm);
+            font-weight: 500;
+            transition: background-color var(--transition-fast);
+        }
+
+        .danger-button:hover {
+            background-color: #c53030;
+        }
+
+        /* Modals */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 500px;
+            background-color: var(--bg-primary);
+            border-radius: var(--border-radius-md);
+            box-shadow: 0 4px 12px var(--shadow-color);
+            z-index: 1001;
+        }
+
+        .modal-content {
+            padding: 24px;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 16px;
+        }
+
+        .modal-content p {
+            margin-bottom: 24px;
+            color: var(--text-secondary);
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-radius: var(--border-radius-sm);
+            box-shadow: 0 2px 8px var(--shadow-color);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .toast.error {
+            background-color: var(--error-color);
+            color: white;
+        }
+
+        .toast.warning {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                min-height: 0;
+                max-height: 40vh;
+            }
+            
+            .main-content {
+                height: auto;
+                flex: 1;
+            }
+            
+            .message {
+                max-width: 95%;
+            }
+        }
+
+        /* Utility classes */
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            color: var(--text-tertiary);
+            font-style: italic;
+        }
+
+        .typing-indicator::after {
+            content: "...";
+            animation: ellipsis 1.5s infinite;
+            width: 20px;
+            display: inline-block;
+            text-align: left;
+        }
+
+        @keyframes ellipsis {
+            0% { content: "."; }
+            33% { content: ".."; }
+            66% { content: "..."; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Markdown styling in messages */
+        .message-content h1, 
+        .message-content h2, 
+        .message-content h3, 
+        .message-content h4 {
+            margin-top: 16px;
+            margin-bottom: 8px;
+        }
+
+        .message-content ul, 
+        .message-content ol {
+            margin-left: 24px;
+            margin-bottom: 12px;
+        }
+
+        .message-content a {
+            color: var(--accent-primary);
+            text-decoration: none;
+        }
+
+        .message-content a:hover {
+            text-decoration: underline;
+        }
+
+        .message-content img {
+            max-width: 100%;
+            border-radius: var(--border-radius-sm);
+            margin: 8px 0;
+        }
+
+        .message-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 16px 0;
+        }
+
+        .message-content th,
+        .message-content td {
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+        }
+
+        .message-content th {
+            background-color: var(--bg-tertiary);
+            font-weight: 600;
+        }
+
+        /* Loading animation */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-tertiary);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar / Left panel -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-brain"></i>
+                    <span class="app-name" data-i18n="appTitle">Nous AI Chat</span>
+                </div>
+                <button id="new-chat-btn" class="primary-button">
+                    <i class="fas fa-plus"></i>
+                    <span data-i18n="newChatButton">New Chat</span>
+                </button>
+            </div>
+            
+            <!-- Conversation list -->
+            <div class="conversations-section">
+                <h3 data-i18n="conversationList">Your Conversations</h3>
+                <div id="conversations-list" class="conversations-list">
+                    <!-- Conversations will be populated here -->
+                </div>
+            </div>
+            
+            <!-- Usage statistics -->
+            <div class="usage-stats">
+                <h3 data-i18n="usageStats">Usage Statistics</h3>
+                <div class="stat-item">
+                    <span data-i18n="totalTokens">Total Tokens</span>: 
+                    <span id="total-tokens">0</span>
+                </div>
+                <div class="stat-item">
+                    <span data-i18n="promptTokens">Prompt Tokens</span>: 
+                    <span id="prompt-tokens">0</span>
+                </div>
+                <div class="stat-item">
+                    <span data-i18n="completionTokens">Completion Tokens</span>: 
+                    <span id="completion-tokens">0</span>
+                </div>
+                <div class="stat-item">
+                    <span data-i18n="estimatedCost">Estimated Cost</span>: 
+                    $<span id="estimated-cost">0.000</span>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="sidebar-footer">
+                <div class="language-selector">
+                    <button class="lang-btn active" data-lang="en">EN</button>
+                    <button class="lang-btn" data-lang="tr">TR</button>
+                    <button class="lang-btn" data-lang="de">DE</button>
+                </div>
+                <div class="theme-toggle">
+                    <button id="light-theme-btn" class="active" title="Light mode">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                    <button id="dark-theme-btn" title="Dark mode">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+                <p class="footer-text" data-i18n="footer">Developed for personal use only.</p>
+            </div>
+        </aside>
+
+        <!-- Main content area -->
+        <main class="main-content">
+            <!-- Tab navigation -->
+            <nav class="tab-nav">
+                <button class="tab-btn active" data-tab="chat">
+                    <i class="fas fa-comment"></i>
+                    <span data-i18n="navChat">Chat</span>
+                </button>
+                <button class="tab-btn" data-tab="settings">
+                    <i class="fas fa-cog"></i>
+                    <span data-i18n="navSettings">Settings</span>
+                </button>
+                <button class="tab-btn" data-tab="export">
+                    <i class="fas fa-file-export"></i>
+                    <span data-i18n="navExport">Export</span>
+                </button>
+            </nav>
+            
+            <!-- Chat tab content -->
+            <div class="tab-content active" id="chat-tab">
+                <div class="chat-header">
+                    <h2 id="active-chat-name" data-i18n="activeChat">Active Chat</h2>
+                </div>
+                
+                <div class="chat-container">
+                    <!-- Chat messages will appear here -->
+                    <div id="chat-messages" class="chat-messages">
+                        <div class="empty-chat-message">
+                            <i class="fas fa-comment-dots"></i>
+                            <p data-i18n="emptyChat">Start a new conversation by typing a message</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Input area -->
+                    <div class="chat-input-container">
+                        <div class="chat-input-wrapper">
+                            <textarea id="message-input" placeholder="Type your message here..." 
+                                data-i18n-placeholder="messagePlaceholder"></textarea>
+                            <button id="send-message-btn" class="send-button">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Settings tab content -->
+            <div class="tab-content" id="settings-tab">
+                <div class="settings-container">
+                    <section class="settings-section">
+                        <h2 data-i18n="apiSettings">API Settings</h2>
+                        <div class="form-group">
+                            <label for="api-key" data-i18n="apiKey">Nous API Key</label>
+                            <input type="password" id="api-key" 
+                                   data-i18n-placeholder="apiKeyPlaceholder"
+                                   placeholder="Enter your Nous API key here">
+                            <p class="help-text" data-i18n="apiKeyInfo">Your API key is stored locally in your browser.</p>
+                        </div>
+                    </section>
+                    
+                    <section class="settings-section">
+                        <h2 data-i18n="modelSettings">Model Settings</h2>
+                        
+                        <div class="form-group">
+                            <label for="model-selection" data-i18n="modelSelection">Model</label>
+                            <select id="model-selection">
+                                <option value="DeepHermes-3-Mistral-24B-Preview">DeepHermes-3-Mistral-24B-Preview</option>
+                                <option value="Hermes-3-Llama-3.1-70B">Hermes-3-Llama-3.1-70B</option>
+                                <option value="DeepHermes-3-Llama-3-8B-Preview">DeepHermes-3-Llama-3-8B-Preview</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="temperature" data-i18n="temperatureLabel">Temperature</label>
+                            <div class="slider-container">
+                                <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.7">
+                                <span id="temperature-value">0.7</span>
+                            </div>
+                            <p class="help-text" data-i18n="temperatureInfo">Lower values make responses more focused and deterministic. Higher values make output more random and creative.</p>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="max-tokens" data-i18n="maxTokensLabel">Maximum Length</label>
+                            <div class="slider-container">
+                                <input type="range" id="max-tokens" min="100" max="4000" step="100" value="1000">
+                                <span id="max-tokens-value">1000</span>
+                            </div>
+                            <p class="help-text" data-i18n="maxTokensInfo">Maximum number of tokens to generate. Higher values allow for longer responses.</p>
+                        </div>
+                    </section>
+                    
+                    <section class="settings-section">
+                        <h2 data-i18n="systemTemplates">System Message Templates</h2>
+                        
+                        <div class="form-group">
+                            <select id="system-template">
+                                <option value="default" data-i18n="defaultAssistant">Default Assistant</option>
+                                <option value="creative" data-i18n="creativeWriter">Creative Writer</option>
+                                <option value="code" data-i18n="codeHelper">Code Helper</option>
+                                <option value="thoughtful" data-i18n="thoughtfulAnalyst">Thoughtful Analyst</option>
+                                <option value="concise" data-i18n="conciseResponder">Concise Responder</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="use-custom-template">
+                                <label for="use-custom-template" data-i18n="useCustomTemplate">Use Custom Template</label>
+                            </div>
+                            <textarea id="custom-system-message" 
+                                     data-i18n-placeholder="customSystemMessage" 
+                                     placeholder="Custom system message"></textarea>
+                            <p class="help-text" data-i18n="systemMessageInfo">Sets the behavior and context for the AI assistant.</p>
+                        </div>
+                        
+                        <button id="save-settings-btn" class="primary-button">
+                            <i class="fas fa-save"></i>
+                            <span data-i18n="saveSettings">Save Settings</span>
+                        </button>
+                    </section>
+                </div>
+            </div>
+            
+            <!-- Export tab content -->
+            <div class="tab-content" id="export-tab">
+                <div class="export-container">
+                    <h2 data-i18n="exportTitle">Export Conversation</h2>
+                    
+                    <div class="form-group">
+                        <label for="export-format" data-i18n="exportFormat">Format</label>
+                        <select id="export-format">
+                            <option value="json" data-i18n="formatJSON">JSON File</option>
+                            <option value="text" data-i18n="formatTXT">Text File</option>
+                            <option value="html" data-i18n="formatHTML">HTML File</option>
+                        </select>
+                    </div>
+                    
+                    <button id="export-btn" class="primary-button">
+                        <i class="fas fa-file-export"></i>
+                        <span data-i18n="exportButton">Export</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modal templates -->
+    <div class="modal-overlay" id="modal-overlay"></div>
+    
+    <!-- Rename conversation modal -->
+    <div class="modal" id="rename-modal">
+        <div class="modal-content">
+            <h2 data-i18n="renameConversation">Rename Conversation</h2>
+            <div class="form-group">
+                <label for="new-conversation-name" data-i18n="newConversationName">New name</label>
+                <input type="text" id="new-conversation-name">
+            </div>
+            <div class="modal-buttons">
+                <button id="cancel-rename-btn" class="secondary-button" data-i18n="cancelButton">Cancel</button>
+                <button id="save-rename-btn" class="primary-button" data-i18n="saveButton">Save</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete confirmation modal -->
+    <div class="modal" id="delete-modal">
+        <div class="modal-content">
+            <h2 data-i18n="deleteConversation">Delete Conversation</h2>
+            <p data-i18n="confirmDelete">Are you sure you want to delete this conversation?</p>
+            <div class="modal-buttons">
+                <button id="cancel-delete-btn" class="secondary-button" data-i18n="cancelButton">Cancel</button>
+                <button id="confirm-delete-btn" class="danger-button" data-i18n="deleteButton">Delete</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Clear chat confirmation modal -->
+    <div class="modal" id="clear-modal">
+        <div class="modal-content">
+            <h2 data-i18n="clearConversation">Clear Chat</h2>
+            <p data-i18n="confirmClear">Are you sure you want to clear this conversation?</p>
+            <div class="modal-buttons">
+                <button id="cancel-clear-btn" class="secondary-button" data-i18n="cancelButton">Cancel</button>
+                <button id="confirm-clear-btn" class="danger-button" data-i18n="deleteButton">Clear</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification toast -->
+    <div class="toast" id="toast"></div>
+    
+    <!-- Localization data -->
+    <script>
+        /**
+         * Multilingual support for Nous Chat Interface
+         * Supports English, Turkish, and German
+         */
+        const localization = {
+            // English strings
+            "en": {
+                // App title and general
+                "appTitle": "Nous AI Chat Interface",
+                "appSubtitle": "A powerful interface for conversing with Nous AI models",
+                "footer": "Developed for personal use only. Not affiliated with Nous Research.",
+                
+                // Navigation and sections
+                "navChat": "Chat",
+                "navSettings": "Settings",
+                "navExport": "Export",
+                "navConversations": "Conversations",
+                "conversationList": "Your Conversations",
+                "activeChat": "Active Chat",
+                
+                // Chat interface
+                "messagePlaceholder": "Type your message here...",
+                "sendButton": "Send",
+                "newChatButton": "New Chat",
+                "waitingResponse": "Nous is thinking...",
+                "typingIndicator": "typing...",
+                "emptyChat": "Start a new conversation by typing a message",
+                "you": "You",
+                
+                // Conversation management
+                "newConversation": "New Conversation",
+                "renameConversation": "Rename Conversation",
+                "deleteConversation": "Delete Conversation",
+                "clearConversation": "Clear Chat",
+                "confirmDelete": "Are you sure you want to delete this conversation?",
+                "confirmClear": "Are you sure you want to clear this conversation?",
+                "newConversationName": "New name",
+                "untitledConversation": "Untitled Conversation",
+                "saveButton": "Save",
+                "cancelButton": "Cancel",
+                "deleteButton": "Delete",
+                
+                // API settings
+                "apiSettings": "API Settings",
+                "apiKey": "Nous API Key",
+                "apiKeyPlaceholder": "Enter your Nous API key here",
+                "apiKeyInfo": "Your API key is stored locally in your browser.",
+                "saveSettings": "Save Settings",
+                
+                // Model settings
+                "modelSettings": "Model Settings",
+                "modelSelection": "Model",
+                "temperatureLabel": "Temperature",
+                "temperatureInfo": "Lower values make responses more focused and deterministic. Higher values make output more random and creative.",
+                "maxTokensLabel": "Maximum Length",
+                "maxTokensInfo": "Maximum number of tokens to generate. Higher values allow for longer responses.",
+                "systemMessageLabel": "System Message",
+                "systemMessageInfo": "Sets the behavior and context for the AI assistant.",
+                
+                // System message templates
+                "systemTemplates": "System Message Templates",
+                "customSystemMessage": "Custom System Message",
+                "useCustomTemplate": "Use Custom Template",
+                
+                // System message preset names
+                "defaultAssistant": "Default Assistant",
+                "creativeWriter": "Creative Writer",
+                "codeHelper": "Code Helper",
+                "thoughtfulAnalyst": "Thoughtful Analyst",
+                "conciseResponder": "Concise Responder",
+                
+                // Export options
+                "exportTitle": "Export Conversation",
+                "exportFormat": "Format",
+                "exportButton": "Export",
+                "formatJSON": "JSON File",
+                "formatTXT": "Text File",
+                "formatHTML": "HTML File",
+                "noConversationToExport": "No conversation to export",
+                
+                // Settings UI
+                "appearance": "Appearance",
+                "lightMode": "Light Mode",
+                "darkMode": "Dark Mode",
+                "language": "Language",
+                
+                // Notifications
+                "settingsSaved": "Settings saved",
+                "errorTitle": "Error",
+                "apiError": "API Error",
+                "exportError": "Export Error",
+                "missingApiKey": "Please enter your API key in the settings",
+                "messageRequired": "Please enter a message",
+                
+                // Usage stats
+                "usageStats": "Usage Statistics",
+                "totalTokens": "Total Tokens",
+                "promptTokens": "Prompt Tokens",
+                "completionTokens": "Completion Tokens",
+                "estimatedCost": "Estimated Cost",
+                
+                // System message templates content
+                "defaultSystemMessage": "You are a helpful, harmless, and honest assistant.",
+                "creativeSystemMessage": "You are a creative assistant with a vivid imagination. Provide detailed, descriptive, and original responses that engage the user's imagination.",
+                "codeSystemMessage": "You are a coding assistant specializing in software development. Provide clear explanations, working code examples, and best practices.",
+                "thoughtfulSystemMessage": "You are a thoughtful and analytical assistant. Carefully consider multiple perspectives and provide nuanced, well-reasoned responses that explore the complexity of topics.",
+                "conciseSystemMessage": "You are a concise and direct assistant. Provide brief, to-the-point responses that efficiently address the user's query without unnecessary information."
+            },
+
+            // Turkish strings
+            "tr": {
+                // App title and general
+                "appTitle": "Nous AI Sohbet Arayüzü",
+                "appSubtitle": "Nous AI modelleriyle sohbet etmek için güçlü bir arayüz",
+                "footer": "Sadece kişisel kullanım için geliştirilmiştir. Nous Research ile bağlantısı yoktur.",
+                
+                // Navigation and sections
+                "navChat": "Sohbet",
+                "navSettings": "Ayarlar",
+                "navExport": "Dışa Aktar",
+                "navConversations": "Konuşmalar",
+                "conversationList": "Konuşmalarınız",
+                "activeChat": "Aktif Sohbet",
+                
+                // Chat interface
+                "messagePlaceholder": "Mesajınızı buraya yazın...",
+                "sendButton": "Gönder",
+                "newChatButton": "Yeni Sohbet",
+                "waitingResponse": "Nous düşünüyor...",
+                "typingIndicator": "yazıyor...",
+                "emptyChat": "Bir mesaj yazarak yeni bir konuşma başlatın",
+                "you": "Siz",
+                
+                // Conversation management
+                "newConversation": "Yeni Konuşma",
+                "renameConversation": "Konuşmayı Yeniden Adlandır",
+                "deleteConversation": "Konuşmayı Sil",
+                "clearConversation": "Sohbeti Temizle",
+                "confirmDelete": "Bu konuşmayı silmek istediğinizden emin misiniz?",
+                "confirmClear": "Bu konuşmayı temizlemek istediğinizden emin misiniz?",
+                "newConversationName": "Yeni isim",
+                "untitledConversation": "İsimsiz Konuşma",
+                "saveButton": "Kaydet",
+                "cancelButton": "İptal",
+                "deleteButton": "Sil",
+                
+                // API settings
+                "apiSettings": "API Ayarları",
+                "apiKey": "Nous API Anahtarı",
+                "apiKeyPlaceholder": "Nous API anahtarınızı buraya girin",
+                "apiKeyInfo": "API anahtarınız yalnızca tarayıcınızda yerel olarak saklanır.",
+                "saveSettings": "Ayarları Kaydet",
+                
+                // Model settings
+                "modelSettings": "Model Ayarları",
+                "modelSelection": "Model",
+                "temperatureLabel": "Sıcaklık",
+                "temperatureInfo": "Düşük değerler yanıtları daha odaklı ve belirleyici yapar. Yüksek değerler çıktıyı daha rastgele ve yaratıcı yapar.",
+                "maxTokensLabel": "Maksimum Uzunluk",
+                "maxTokensInfo": "Oluşturulacak maksimum token sayısı. Daha yüksek değerler daha uzun yanıtlara izin verir.",
+                "systemMessageLabel": "Sistem Mesajı",
+                "systemMessageInfo": "AI asistanı için davranışı ve bağlamı belirler.",
+                
+                // System message templates
+                "systemTemplates": "Sistem Mesajı Şablonları",
+                "customSystemMessage": "Özel Sistem Mesajı",
+                "useCustomTemplate": "Özel Şablon Kullan",
+                
+                // System message preset names
+                "defaultAssistant": "Varsayılan Asistan",
+                "creativeWriter": "Yaratıcı Yazar",
+                "codeHelper": "Kod Yardımcısı",
+                "thoughtfulAnalyst": "Düşünceli Analist",
+                "conciseResponder": "Özlü Yanıtlayıcı",
+                
+                // Export options
+                "exportTitle": "Konuşmayı Dışa Aktar",
+                "exportFormat": "Format",
+                "exportButton": "Dışa Aktar",
+                "formatJSON": "JSON Dosyası",
+                "formatTXT": "Metin Dosyası",
+                "formatHTML": "HTML Dosyası",
+                "noConversationToExport": "Dışa aktarılacak konuşma yok",
+                
+                // Settings UI
+                "appearance": "Görünüm",
+                "lightMode": "Açık Mod",
+                "darkMode": "Koyu Mod",
+                "language": "Dil",
+                
+                // Notifications
+                "settingsSaved": "Ayarlar kaydedildi",
+                "errorTitle": "Hata",
+                "apiError": "API Hatası",
+                "exportError": "Dışa Aktarma Hatası",
+                "missingApiKey": "Lütfen ayarlarda API anahtarınızı girin",
+                "messageRequired": "Lütfen bir mesaj girin",
+                
+                // Usage stats
+                "usageStats": "Kullanım İstatistikleri",
+                "totalTokens": "Toplam Token",
+                "promptTokens": "İstem Token",
+                "completionTokens": "Yanıt Token",
+                "estimatedCost": "Tahmini Maliyet",
+                
+                // System message templates content
+                "defaultSystemMessage": "Yardımsever, zararsız ve dürüst bir asistansın.",
+                "creativeSystemMessage": "Canlı bir hayal gücüne sahip yaratıcı bir asistansın. Kullanıcının hayal gücünü harekete geçiren ayrıntılı, betimleyici ve özgün yanıtlar sağla.",
+                "codeSystemMessage": "Yazılım geliştirme konusunda uzmanlaşmış bir kodlama asistanısın. Net açıklamalar, çalışan kod örnekleri ve en iyi uygulamaları sağla.",
+                "thoughtfulSystemMessage": "Düşünceli ve analitik bir asistansın. Birden fazla bakış açısını dikkatlice değerlendir ve konuların karmaşıklığını keşfeden nüanslı, iyi düşünülmüş yanıtlar sun.",
+                "conciseSystemMessage": "Özlü ve doğrudan bir asistansın. Gereksiz bilgiler olmadan kullanıcının sorgusuyla verimli bir şekilde ilgilenen kısa ve öz yanıtlar sağla."
+            },
+            
+            // German strings
+            "de": {
+                // App title and general
+                "appTitle": "Nous AI Chat-Schnittstelle",
+                "appSubtitle": "Eine leistungsstarke Schnittstelle für Gespräche mit Nous AI-Modellen",
+                "footer": "Nur für den persönlichen Gebrauch entwickelt. Nicht mit Nous Research verbunden.",
+                
+                // Navigation and sections
+                "navChat": "Chat",
+                "navSettings": "Einstellungen",
+                "navExport": "Exportieren",
+                "navConversations": "Gespräche",
+                "conversationList": "Ihre Gespräche",
+                "activeChat": "Aktiver Chat",
+                
+                // Chat interface
+                "messagePlaceholder": "Geben Sie Ihre Nachricht hier ein...",
+                "sendButton": "Senden",
+                "newChatButton": "Neuer Chat",
+                "waitingResponse": "Nous denkt nach...",
+                "typingIndicator": "tippt...",
+                "emptyChat": "Beginnen Sie ein neues Gespräch, indem Sie eine Nachricht eingeben",
+                "you": "Sie",
+                
+                // Conversation management
+                "newConversation": "Neues Gespräch",
+                "renameConversation": "Gespräch umbenennen",
+                "deleteConversation": "Gespräch löschen",
+                "clearConversation": "Chat leeren",
+                "confirmDelete": "Sind Sie sicher, dass Sie dieses Gespräch löschen möchten?",
+                "confirmClear": "Sind Sie sicher, dass Sie diesen Chat leeren möchten?",
+                "newConversationName": "Neuer Name",
+                "untitledConversation": "Unbenanntes Gespräch",
+                "saveButton": "Speichern",
+                "cancelButton": "Abbrechen",
+                "deleteButton": "Löschen",
+                
+                // API settings
+                "apiSettings": "API-Einstellungen",
+                "apiKey": "Nous API-Schlüssel",
+                "apiKeyPlaceholder": "Geben Sie hier Ihren Nous API-Schlüssel ein",
+                "apiKeyInfo": "Ihr API-Schlüssel wird lokal in Ihrem Browser gespeichert.",
+                "saveSettings": "Einstellungen speichern",
+                
+                // Model settings
+                "modelSettings": "Modelleinstellungen",
+                "modelSelection": "Modell",
+                "temperatureLabel": "Temperatur",
+                "temperatureInfo": "Niedrigere Werte machen Antworten fokussierter und deterministischer. Höhere Werte machen die Ausgabe zufälliger und kreativer.",
+                "maxTokensLabel": "Maximale Länge",
+                "maxTokensInfo": "Maximale Anzahl zu generierender Token. Höhere Werte ermöglichen längere Antworten.",
+                "systemMessageLabel": "Systemnachricht",
+                "systemMessageInfo": "Legt das Verhalten und den Kontext für den KI-Assistenten fest.",
+                
+                // System message templates
+                "systemTemplates": "Systemnachrichtenvorlagen",
+                "customSystemMessage": "Benutzerdefinierte Systemnachricht",
+                "useCustomTemplate": "Benutzerdefinierte Vorlage verwenden",
+                
+                // System message preset names
+                "defaultAssistant": "Standard-Assistent",
+                "creativeWriter": "Kreativer Schriftsteller",
+                "codeHelper": "Code-Helfer",
+                "thoughtfulAnalyst": "Nachdenklicher Analyst",
+                "conciseResponder": "Präziser Beantworter",
+                
+                // Export options
+                "exportTitle": "Gespräch exportieren",
+                "exportFormat": "Format",
+                "exportButton": "Exportieren",
+                "formatJSON": "JSON-Datei",
+                "formatTXT": "Text-Datei",
+                "formatHTML": "HTML-Datei",
+                "noConversationToExport": "Kein Gespräch zum Exportieren",
+                
+                // Settings UI
+                "appearance": "Erscheinungsbild",
+                "lightMode": "Heller Modus",
+                "darkMode": "Dunkler Modus",
+                "language": "Sprache",
+                
+                // Notifications
+                "settingsSaved": "Einstellungen gespeichert",
+                "errorTitle": "Fehler",
+                "apiError": "API-Fehler",
+                "exportError": "Export-Fehler",
+                "missingApiKey": "Bitte geben Sie Ihren API-Schlüssel in den Einstellungen ein",
+                "messageRequired": "Bitte geben Sie eine Nachricht ein",
+                
+                // Usage stats
+                "usageStats": "Nutzungsstatistiken",
+                "totalTokens": "Gesamttoken",
+                "promptTokens": "Prompt-Token",
+                "completionTokens": "Antwort-Token",
+                "estimatedCost": "Geschätzte Kosten",
+                
+                // System message templates content
+                "defaultSystemMessage": "Sie sind ein hilfreicher, harmloser und ehrlicher Assistent.",
+                "creativeSystemMessage": "Sie sind ein kreativer Assistent mit einer lebhaften Fantasie. Bieten Sie detaillierte, beschreibende und originelle Antworten, die die Fantasie des Benutzers anregen.",
+                "codeSystemMessage": "Sie sind ein Programmierassistent, der sich auf Softwareentwicklung spezialisiert hat. Bieten Sie klare Erklärungen, funktionierende Codebeispiele und bewährte Praktiken.",
+                "thoughtfulSystemMessage": "Sie sind ein nachdenklicher und analytischer Assistent. Berücksichtigen Sie sorgfältig mehrere Perspektiven und geben Sie nuancierte, gut durchdachte Antworten, die die Komplexität von Themen untersuchen.",
+                "conciseSystemMessage": "Sie sind ein präziser und direkter Assistent. Bieten Sie kurze, prägnante Antworten, die effizient auf die Anfrage des Benutzers eingehen, ohne unnötige Informationen."
+            }
+        };
+    </script>
+
+    <!-- Main Application JavaScript -->
+    <script>
+        // State management
+        const state = {
+            currentLanguage: localStorage.getItem('language') || 'en',
+            currentTheme: localStorage.getItem('theme') || 'light',
+            currentTab: 'chat',
+            conversations: {},
+            currentConversationId: null,
+            apiKey: localStorage.getItem('nousApiKey') || '',
+            model: localStorage.getItem('nousModel') || 'DeepHermes-3-Mistral-24B-Preview',
+            temperature: parseFloat(localStorage.getItem('temperature')) || 0.7,
+            maxTokens: parseInt(localStorage.getItem('maxTokens')) || 1000,
+            systemTemplate: localStorage.getItem('systemTemplate') || 'default',
+            useCustomTemplate: localStorage.getItem('useCustomTemplate') === 'true',
+            customSystemMessage: localStorage.getItem('customSystemMessage') || '',
+            tokenUsage: {
+                totalTokens: parseInt(localStorage.getItem('totalTokens')) || 0,
+                promptTokens: parseInt(localStorage.getItem('promptTokens')) || 0,
+                completionTokens: parseInt(localStorage.getItem('completionTokens')) || 0
+            },
+            estimatedCost: parseFloat(localStorage.getItem('estimatedCost')) || 0,
+            waitingForResponse: false,
+            editingConversationId: null
+        };
+
+        // System message templates
+        const systemTemplates = {
+            'default': {
+                en: localization.en.defaultSystemMessage,
+                tr: localization.tr.defaultSystemMessage,
+                de: localization.de.defaultSystemMessage
+            },
+            'creative': {
+                en: localization.en.creativeSystemMessage,
+                tr: localization.tr.creativeSystemMessage,
+                de: localization.de.creativeSystemMessage
+            },
+            'code': {
+                en: localization.en.codeSystemMessage,
+                tr: localization.tr.codeSystemMessage,
+                de: localization.de.codeSystemMessage
+            },
+            'thoughtful': {
+                en: localization.en.thoughtfulSystemMessage,
+                tr: localization.tr.thoughtfulSystemMessage,
+                de: localization.de.thoughtfulSystemMessage
+            },
+            'concise': {
+                en: localization.en.conciseSystemMessage,
+                tr: localization.tr.conciseSystemMessage,
+                de: localization.de.conciseSystemMessage
+            }
+        };
+
+        // DOM Elements
+        const elements = {
+            // Tabs
+            tabButtons: document.querySelectorAll('.tab-btn'),
+            tabContents: document.querySelectorAll('.tab-content'),
+            
+            // Chat elements
+            chatMessages: document.getElementById('chat-messages'),
+            messageInput: document.getElementById('message-input'),
+            sendButton: document.getElementById('send-message-btn'),
+            newChatButton: document.getElementById('new-chat-btn'),
+            activeChatName: document.getElementById('active-chat-name'),
+            conversationsList: document.getElementById('conversations-list'),
+            
+            // Settings elements
+            apiKeyInput: document.getElementById('api-key'),
+            modelSelection: document.getElementById('model-selection'),
+            temperatureSlider: document.getElementById('temperature'),
+            temperatureValue: document.getElementById('temperature-value'),
+            maxTokensSlider: document.getElementById('max-tokens'),
+            maxTokensValue: document.getElementById('max-tokens-value'),
+            systemTemplateSelect: document.getElementById('system-template'),
+            useCustomTemplateCheckbox: document.getElementById('use-custom-template'),
+            customSystemMessageTextarea: document.getElementById('custom-system-message'),
+            saveSettingsButton: document.getElementById('save-settings-btn'),
+            
+            // Export elements
+            exportFormatSelect: document.getElementById('export-format'),
+            exportButton: document.getElementById('export-btn'),
+            
+            // Modals
+            modalOverlay: document.getElementById('modal-overlay'),
+            renameModal: document.getElementById('rename-modal'),
+            deleteModal: document.getElementById('delete-modal'),
+            clearModal: document.getElementById('clear-modal'),
+            newConversationNameInput: document.getElementById('new-conversation-name'),
+            saveRenameButton: document.getElementById('save-rename-btn'),
+            cancelRenameButton: document.getElementById('cancel-rename-btn'),
+            confirmDeleteButton: document.getElementById('confirm-delete-btn'),
+            cancelDeleteButton: document.getElementById('cancel-delete-btn'),
+            confirmClearButton: document.getElementById('confirm-clear-btn'),
+            cancelClearButton: document.getElementById('cancel-clear-btn'),
+            
+            // Theme toggle
+            lightThemeButton: document.getElementById('light-theme-btn'),
+            darkThemeButton: document.getElementById('dark-theme-btn'),
+            
+            // Language selector
+            languageButtons: document.querySelectorAll('.lang-btn'),
+            
+            // Stats elements
+            totalTokensElement: document.getElementById('total-tokens'),
+            promptTokensElement: document.getElementById('prompt-tokens'),
+            completionTokensElement: document.getElementById('completion-tokens'),
+            estimatedCostElement: document.getElementById('estimated-cost'),
+            
+            // Toast
+            toast: document.getElementById('toast')
+        };
+
+        // Initialize the application
+        function initializeApp() {
+            loadConversations();
+            updateUIForCurrentLanguage();
+            updateThemeUI();
+            updateStatsDisplay();
+            setupEventListeners();
+            
+            // Set up the UI based on stored state
+            elements.apiKeyInput.value = state.apiKey;
+            elements.modelSelection.value = state.model;
+            elements.temperatureSlider.value = state.temperature;
+            elements.temperatureValue.textContent = state.temperature;
+            elements.maxTokensSlider.value = state.maxTokens;
+            elements.maxTokensValue.textContent = state.maxTokens;
+            elements.systemTemplateSelect.value = state.systemTemplate;
+            elements.useCustomTemplateCheckbox.checked = state.useCustomTemplate;
+            elements.customSystemMessageTextarea.value = state.customSystemMessage;
+            elements.customSystemMessageTextarea.disabled = !state.useCustomTemplate;
+            
+            // If no conversations exist, create a default one
+            if (Object.keys(state.conversations).length === 0) {
+                createNewConversation();
+            } else if (!state.currentConversationId || !state.conversations[state.currentConversationId]) {
+                // Set the first conversation as active if none is selected
+                state.currentConversationId = Object.keys(state.conversations)[0];
+            }
+            
+            // Update UI with current conversation
+            updateConversationsList();
+            displayCurrentConversation();
+        }
+
+        // Set up all event listeners
+        function setupEventListeners() {
+            // Tab navigation
+            elements.tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabName = button.getAttribute('data-tab');
+                    switchTab(tabName);
+                });
+            });
+            
+            // Chat functionality
+            elements.sendButton.addEventListener('click', sendMessage);
+            elements.messageInput.addEventListener('keydown', e => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            elements.newChatButton.addEventListener('click', createNewConversation);
+            
+            // Settings
+            elements.temperatureSlider.addEventListener('input', e => {
+                elements.temperatureValue.textContent = e.target.value;
+            });
+            elements.maxTokensSlider.addEventListener('input', e => {
+                elements.maxTokensValue.textContent = e.target.value;
+            });
+            elements.useCustomTemplateCheckbox.addEventListener('change', e => {
+                elements.customSystemMessageTextarea.disabled = !e.target.checked;
+                
+                if (e.target.checked && elements.customSystemMessageTextarea.value === '') {
+                    // Pre-fill with the current template
+                    const templateKey = elements.systemTemplateSelect.value;
+                    elements.customSystemMessageTextarea.value = systemTemplates[templateKey][state.currentLanguage];
+                }
+            });
+            elements.systemTemplateSelect.addEventListener('change', e => {
+                if (!elements.useCustomTemplateCheckbox.checked) {
+                    return;
+                }
+                
+                // Update custom message with selected template
+                const templateKey = e.target.value;
+                elements.customSystemMessageTextarea.value = systemTemplates[templateKey][state.currentLanguage];
+            });
+            elements.saveSettingsButton.addEventListener('click', saveSettings);
+            
+            // Export
+            elements.exportButton.addEventListener('click', exportConversation);
+            
+            // Modals
+            elements.modalOverlay.addEventListener('click', closeAllModals);
+            elements.cancelRenameButton.addEventListener('click', closeAllModals);
+            elements.cancelDeleteButton.addEventListener('click', closeAllModals);
+            elements.cancelClearButton.addEventListener('click', closeAllModals);
+            elements.saveRenameButton.addEventListener('click', renameCurrentConversation);
+            elements.confirmDeleteButton.addEventListener('click', deleteCurrentConversation);
+            elements.confirmClearButton.addEventListener('click', clearCurrentConversation);
+            
+            // Theme toggle
+            elements.lightThemeButton.addEventListener('click', () => setTheme('light'));
+            elements.darkThemeButton.addEventListener('click', () => setTheme('dark'));
+            
+            // Language selector
+            elements.languageButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    setLanguage(button.getAttribute('data-lang'));
+                });
+            });
+        }
+
+        // Localization functions
+        function updateUIForCurrentLanguage() {
+            const currentLangData = localization[state.currentLanguage];
+            
+            // Update all elements with data-i18n attribute
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (currentLangData[key]) {
+                    element.textContent = currentLangData[key];
+                }
+            });
+            
+            // Update all elements with data-i18n-placeholder attribute
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-i18n-placeholder');
+                if (currentLangData[key]) {
+                    element.placeholder = currentLangData[key];
+                }
+            });
+            
+            // Update active language button
+            elements.languageButtons.forEach(button => {
+                const lang = button.getAttribute('data-lang');
+                if (lang === state.currentLanguage) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+            
+            // Update document title
+            document.title = currentLangData.appTitle;
+        }
+
+        function setLanguage(lang) {
+            if (!localization[lang]) return;
+            
+            state.currentLanguage = lang;
+            localStorage.setItem('language', lang);
+            updateUIForCurrentLanguage();
+            updateConversationsList(); // Update conversation list with correct labels
+        }
+
+        // Theme functions
+        function setTheme(theme) {
+            state.currentTheme = theme;
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            updateThemeUI();
+        }
+
+        function updateThemeUI() {
+            if (state.currentTheme === 'dark') {
+                elements.darkThemeButton.classList.add('active');
+                elements.lightThemeButton.classList.remove('active');
+            } else {
+                elements.lightThemeButton.classList.add('active');
+                elements.darkThemeButton.classList.remove('active');
+            }
+        }
+
+        // Tab navigation
+        function switchTab(tabName) {
+            state.currentTab = tabName;
+            
+            // Update tab buttons
+            elements.tabButtons.forEach(button => {
+                if (button.getAttribute('data-tab') === tabName) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+            
+            // Update tab content
+            elements.tabContents.forEach(content => {
+                if (content.id === `${tabName}-tab`) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+        }
+
+        // Conversation management
+        function loadConversations() {
+            const savedConversations = localStorage.getItem('conversations');
+            if (savedConversations) {
+                state.conversations = JSON.parse(savedConversations);
+            }
+            
+            const currentConversationId = localStorage.getItem('currentConversationId');
+            if (currentConversationId && state.conversations[currentConversationId]) {
+                state.currentConversationId = currentConversationId;
+            }
+        }
+
+        function saveConversations() {
+            localStorage.setItem('conversations', JSON.stringify(state.conversations));
+            localStorage.setItem('currentConversationId', state.currentConversationId);
+        }
+
+        function createNewConversation() {
+            const timestamp = new Date().toLocaleString();
+            const texts = localization[state.currentLanguage];
+            const newId = 'conv_' + Date.now();
+            const newName = `${texts.untitledConversation} (${timestamp})`;
+            
+            state.conversations[newId] = {
+                name: newName,
+                messages: []
+            };
+            
+            state.currentConversationId = newId;
+            saveConversations();
+            updateConversationsList();
+            displayCurrentConversation();
+            
+            // Focus the message input
+            elements.messageInput.focus();
+            
+            // Show chat tab if not active
+            if (state.currentTab !== 'chat') {
+                switchTab('chat');
+            }
+        }
+
+        function updateConversationsList() {
+            elements.conversationsList.innerHTML = '';
+            
+            Object.entries(state.conversations).forEach(([id, conversation]) => {
+                const item = document.createElement('div');
+                item.className = 'conversation-item';
+                if (id === state.currentConversationId) {
+                    item.classList.add('active');
+                }
+                
+                const textSpan = document.createElement('span');
+                textSpan.className = 'conversation-text';
+                textSpan.textContent = conversation.name;
+                
+                const actions = document.createElement('div');
+                actions.className = 'conversation-actions';
+                
+                const editButton = document.createElement('button');
+                editButton.innerHTML = '<i class="fas fa-edit"></i>';
+                editButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openRenameModal(id);
+                });
+                
+                const deleteButton = document.createElement('button');
+                deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
+                deleteButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openDeleteModal(id);
+                });
+                
+                actions.appendChild(editButton);
+                actions.appendChild(deleteButton);
+                
+                item.appendChild(textSpan);
+                item.appendChild(actions);
+                
+                item.addEventListener('click', () => {
+                    switchConversation(id);
+                });
+                
+                elements.conversationsList.appendChild(item);
+            });
+        }
+
+        function switchConversation(conversationId) {
+            if (!state.conversations[conversationId]) return;
+            
+            state.currentConversationId = conversationId;
+            saveConversations();
+            updateConversationsList();
+            displayCurrentConversation();
+            
+            // Show chat tab if not active
+            if (state.currentTab !== 'chat') {
+                switchTab('chat');
+            }
+        }
+
+        function displayCurrentConversation() {
+            const conversation = state.conversations[state.currentConversationId];
+            if (!conversation) return;
+            
+            // Update chat header
+            elements.activeChatName.textContent = conversation.name;
+            
+            // Clear chat messages
+            elements.chatMessages.innerHTML = '';
+            
+            // Display messages or empty state
+            if (conversation.messages.length === 0) {
+                const emptyMessage = document.createElement('div');
+                emptyMessage.className = 'empty-chat-message';
+                emptyMessage.innerHTML = `
+                    <i class="fas fa-comment-dots"></i>
+                    <p>${localization[state.currentLanguage].emptyChat}</p>
+                `;
+                elements.chatMessages.appendChild(emptyMessage);
+            } else {
+                conversation.messages.forEach(message => {
+                    addMessageToUI(message.role, message.content);
+                });
+            }
+            
+            // Scroll to bottom
+            scrollToBottom();
+        }
+
+        // Chat functionality
+        function sendMessage() {
+            const messageText = elements.messageInput.value.trim();
+            if (!messageText || state.waitingForResponse) return;
+            
+            if (!state.apiKey) {
+                showToast(localization[state.currentLanguage].missingApiKey, 'error');
+                switchTab('settings');
+                return;
+            }
+            
+            // Add user message to UI and state
+            addMessageToConversation('user', messageText);
+            elements.messageInput.value = '';
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Disable input while waiting for response
+            state.waitingForResponse = true;
+            elements.sendButton.disabled = true;
+            elements.messageInput.disabled = true;
+            
+            // Prepare messages for API request
+            const conversation = state.conversations[state.currentConversationId];
+            const messages = [
+                {
+                    role: 'system',
+                    content: getSystemMessage()
+                }
+            ];
+            
+            // Add previous messages for context (limit to last 10 messages to avoid token limits)
+            const contextMessages = conversation.messages.slice(-10);
+            contextMessages.forEach(msg => {
+                messages.push({
+                    role: msg.role,
+                    content: msg.content
+                });
+            });
+            
+            // Send request to API
+            fetch('https://inference-api.nousresearch.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${state.apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: state.model,
+                    messages: messages,
+                    temperature: state.temperature,
+                    max_tokens: state.maxTokens
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Remove typing indicator
+                removeTypingIndicator();
+                
+                // Add AI response to conversation
+                const aiMessage = data.choices[0].message.content;
+                addMessageToConversation('assistant', aiMessage);
+                
+                // Update token usage stats
+                if (data.usage) {
+                    updateTokenUsage(data.usage);
+                }
+            })
+            .catch(error => {
+                console.error('Error calling API:', error);
+                removeTypingIndicator();
+                showToast(`${localization[state.currentLanguage].apiError}: ${error.message}`, 'error');
+            })
+            .finally(() => {
+                // Re-enable input
+                state.waitingForResponse = false;
+                elements.sendButton.disabled = false;
+                elements.messageInput.disabled = false;
+                elements.messageInput.focus();
+            });
+        }
+
+        function addMessageToConversation(role, content) {
+            const conversation = state.conversations[state.currentConversationId];
+            conversation.messages.push({ role, content });
+            
+            addMessageToUI(role, content);
+            saveConversations();
+            scrollToBottom();
+        }
+
+        function addMessageToUI(role, content) {
+            // Hide empty chat message if present
+            const emptyMessage = elements.chatMessages.querySelector('.empty-chat-message');
+            if (emptyMessage) {
+                emptyMessage.remove();
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role === 'user' ? 'message-user' : 'message-ai'}`;
+            
+            // Create message header with role label
+            const messageHeader = document.createElement('div');
+            messageHeader.className = `message-header ${role === 'user' ? 'user' : 'ai'}`;
+            
+            // Set proper label based on role and language
+            let roleLabel = '';
+            if (role === 'user') {
+                roleLabel = localization[state.currentLanguage].you;
+            } else {
+                roleLabel = 'Nous';
+            }
+            
+            messageHeader.textContent = roleLabel;
+            
+            // Create message content with markdown rendering
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            messageContent.innerHTML = formatMessage(content);
+            
+            messageDiv.appendChild(messageHeader);
+            messageDiv.appendChild(messageContent);
+            
+            // Add animation class
+            messageDiv.classList.add('fade-in');
+            
+            elements.chatMessages.appendChild(messageDiv);
+        }
+
+        function formatMessage(content) {
+            // Basic markdown formatting
+            let formatted = content
+                // Code blocks
+                .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+                // Inline code
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                // Bold
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                // Italic
+                .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+                // Line breaks
+                .replace(/\n/g, '<br>');
+            
+            return formatted;
+        }
+
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typing-indicator';
+            typingDiv.className = 'message message-ai';
+            
+            const messageHeader = document.createElement('div');
+            messageHeader.className = 'message-header ai';
+            messageHeader.textContent = 'Nous';
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content typing-indicator';
+            messageContent.textContent = localization[state.currentLanguage].typingIndicator;
+            
+            typingDiv.appendChild(messageHeader);
+            typingDiv.appendChild(messageContent);
+            
+            elements.chatMessages.appendChild(typingDiv);
+            scrollToBottom();
+        }
+
+        function removeTypingIndicator() {
+            const typingIndicator = document.getElementById('typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        function scrollToBottom() {
+            elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+        }
+
+        // Settings management
+        function saveSettings() {
+            state.apiKey = elements.apiKeyInput.value;
+            state.model = elements.modelSelection.value;
+            state.temperature = parseFloat(elements.temperatureSlider.value);
+            state.maxTokens = parseInt(elements.maxTokensSlider.value);
+            state.systemTemplate = elements.systemTemplateSelect.value;
+            state.useCustomTemplate = elements.useCustomTemplateCheckbox.checked;
+            state.customSystemMessage = elements.customSystemMessageTextarea.value;
+            
+            // Save to localStorage
+            localStorage.setItem('nousApiKey', state.apiKey);
+            localStorage.setItem('nousModel', state.model);
+            localStorage.setItem('temperature', state.temperature);
+            localStorage.setItem('maxTokens', state.maxTokens);
+            localStorage.setItem('systemTemplate', state.systemTemplate);
+            localStorage.setItem('useCustomTemplate', state.useCustomTemplate);
+            localStorage.setItem('customSystemMessage', state.customSystemMessage);
+            
+            showToast(localization[state.currentLanguage].settingsSaved, 'success');
+        }
+
+        function getSystemMessage() {
+            if (state.useCustomTemplate && state.customSystemMessage) {
+                return state.customSystemMessage;
+            }
+            
+            return systemTemplates[state.systemTemplate][state.currentLanguage];
+        }
+
+        // Modal functions
+        function openRenameModal(conversationId) {
+            state.editingConversationId = conversationId;
+            elements.newConversationNameInput.value = state.conversations[conversationId].name;
+            
+            elements.modalOverlay.style.display = 'block';
+            elements.renameModal.style.display = 'block';
+            
+            elements.newConversationNameInput.focus();
+        }
+
+        function openDeleteModal(conversationId) {
+            state.editingConversationId = conversationId;
+            
+            elements.modalOverlay.style.display = 'block';
+            elements.deleteModal.style.display = 'block';
+        }
+
+        function openClearModal() {
+            elements.modalOverlay.style.display = 'block';
+            elements.clearModal.style.display = 'block';
+        }
+
+        function closeAllModals() {
+            elements.modalOverlay.style.display = 'none';
+            elements.renameModal.style.display = 'none';
+            elements.deleteModal.style.display = 'none';
+            elements.clearModal.style.display = 'none';
+            
+            state.editingConversationId = null;
+        }
+
+        function renameCurrentConversation() {
+            if (!state.editingConversationId) return;
+            
+            const newName = elements.newConversationNameInput.value.trim();
+            if (!newName) return;
+            
+            state.conversations[state.editingConversationId].name = newName;
+            saveConversations();
+            updateConversationsList();
+            
+            // Update active chat name if this is the current conversation
+            if (state.editingConversationId === state.currentConversationId) {
+                elements.activeChatName.textContent = newName;
+            }
+            
+            closeAllModals();
+        }
+
+        function deleteCurrentConversation() {
+            if (!state.editingConversationId) return;
+            
+            delete state.conversations[state.editingConversationId];
+            
+            // If we deleted the current conversation, switch to another one
+            if (state.editingConversationId === state.currentConversationId) {
+                const conversationIds = Object.keys(state.conversations);
+                if (conversationIds.length > 0) {
+                    state.currentConversationId = conversationIds[0];
+                    displayCurrentConversation();
+                } else {
+                    createNewConversation();
+                }
+            }
+            
+            saveConversations();
+            updateConversationsList();
+            closeAllModals();
+        }
+
+        function clearCurrentConversation() {
+            if (!state.currentConversationId) return;
+            
+            state.conversations[state.currentConversationId].messages = [];
+            saveConversations();
+            displayCurrentConversation();
+            closeAllModals();
+        }
+
+        // Export functions
+        function exportConversation() {
+            if (!state.currentConversationId || state.conversations[state.currentConversationId].messages.length === 0) {
+                showToast(localization[state.currentLanguage].noConversationToExport, 'warning');
+                return;
+            }
+            
+            const format = elements.exportFormatSelect.value;
+            const conversation = state.conversations[state.currentConversationId];
+            
+            let content = '';
+            let filename = '';
+            let type = '';
+            
+            if (format === 'json') {
+                content = JSON.stringify(conversation.messages, null, 2);
+                filename = `${conversation.name}.json`;
+                type = 'application/json';
+            } else if (format === 'text') {
+                conversation.messages.forEach(message => {
+                    const role = message.role === 'user' 
+                        ? localization[state.currentLanguage].you 
+                        : 'Nous';
+                    content += `${role}:\n${message.content}\n\n`;
+                });
+                filename = `${conversation.name}.txt`;
+                type = 'text/plain';
+            } else if (format === 'html') {
+                content = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>${conversation.name}</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .message { margin-bottom: 20px; padding: 10px; border-radius: 5px; }
+        .user { background-color: #f0f7ff; }
+        .assistant { background-color: #f5f5f5; }
+        .role { font-weight: bold; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <h1>${conversation.name}</h1>`;
+                
+                conversation.messages.forEach(message => {
+                    const role = message.role === 'user' 
+                        ? localization[state.currentLanguage].you 
+                        : 'Nous';
+                    const messageClass = message.role === 'user' ? 'user' : 'assistant';
+                    content += `
+    <div class="message ${messageClass}">
+        <div class="role">${role}:</div>
+        <div>${message.content.replace(/\n/g, '<br>')}</div>
+    </div>`;
+                });
+                
+                content += `
+</body>
+</html>`;
+                filename = `${conversation.name}.html`;
+                type = 'text/html';
+            }
+            
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            
+            URL.revokeObjectURL(url);
+        }
+
+        // Stats management
+        function updateTokenUsage(usage) {
+            state.tokenUsage.promptTokens += usage.prompt_tokens || 0;
+            state.tokenUsage.completionTokens += usage.completion_tokens || 0;
+            state.tokenUsage.totalTokens += usage.total_tokens || 0;
+            
+            // Approximate cost calculation (adjust prices as needed)
+            const promptCost = (usage.prompt_tokens || 0) * 0.000001; // $0.001 per 1000 tokens
+            const completionCost = (usage.completion_tokens || 0) * 0.000002; // $0.002 per 1000 tokens
+            state.estimatedCost += promptCost + completionCost;
+            
+            // Save to localStorage
+            localStorage.setItem('totalTokens', state.tokenUsage.totalTokens);
+            localStorage.setItem('promptTokens', state.tokenUsage.promptTokens);
+            localStorage.setItem('completionTokens', state.tokenUsage.completionTokens);
+            localStorage.setItem('estimatedCost', state.estimatedCost);
+            
+            updateStatsDisplay();
+        }
+
+        function updateStatsDisplay() {
+            elements.totalTokensElement.textContent = state.tokenUsage.totalTokens.toLocaleString();
+            elements.promptTokensElement.textContent = state.tokenUsage.promptTokens.toLocaleString();
+            elements.completionTokensElement.textContent = state.tokenUsage.completionTokens.toLocaleString();
+            elements.estimatedCostElement.textContent = state.estimatedCost.toFixed(6);
+        }
+
+        // Utility functions
+        function showToast(message, type = 'default') {
+            elements.toast.textContent = message;
+            elements.toast.className = `toast ${type}`;
+            elements.toast.classList.add('show');
+            
+            setTimeout(() => {
+                elements.toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialize app on load
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+</body>
+</html>
