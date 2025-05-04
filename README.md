@@ -24,8 +24,8 @@ A modern, responsive, and multilingual chat interface for interacting with Nous 
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/nous-chat-interface.git
-   cd nous-chat-interface
+   git clone [https://github.com/yourusername/nous-chat-interface.git](https://github.com/zacnider/nouschat.git)
+   cd nous-chat
    ```
 
 2. Install dependencies:
