@@ -1,5 +1,5 @@
 # Nous Chat Interface
-
+https://nouschat.vercel.app/
 A modern, responsive, and multilingual chat interface for interacting with Nous AI models. This application provides a clean and intuitive user experience for testing and using Nous AI's language models through their API.
 
 ## Features
